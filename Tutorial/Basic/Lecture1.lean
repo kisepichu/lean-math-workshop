@@ -4,7 +4,7 @@ import Batteries
 
 -- 証明があるべき場所に`sorry`と書いてあるので...
 example : 1 + 1 = 2 := by
-  sorry
+  simp
 
 -- 正しい証明に書き直そう！
 example : 1 + 1 = 2 := by
@@ -41,17 +41,26 @@ variable (P Q R : Prop)
 
 example (hP : P) : P := by
   -- ヒント: `apply hP`と入力すれば仮定をゴールに適用できる。
-  sorry
+  apply hP
 
 example (h : P → Q) (hP : P) : Q := by
   -- 改行して複数のtacticを並べることもできる。インデント（行の頭の空白の個数）を
   -- 揃える必要があることに注意しよう。
   -- ヒント: `apply`を2回使う。
-  sorry
+  apply (h hP)
+
+example (h : P → Q) (hP : P) : Q :=
+  h hP
 
 example (h : P → Q) (h' : Q → R) : P → R := by
   -- ヒント: `intro hP`と入力すれば仮定`hP : P`が得られる。
-  sorry
+  intro hP
+  apply (h' (h hP))
+
+-- apply 複数行で書くとき、ゴールを変形するのわかりにくいな
+
+example (h : P → Q) (h' : Q → R) : P → R :=
+  fun hP ↦ h' (h hP)
 
 -- TIPS: 入力した`intro`や`apply`の上にカーソルを乗せるとtacticの説明が表示される。
 
@@ -61,13 +70,36 @@ example (h : P → Q) (h' : Q → R) : P → R := by
 
 example (hP : P) (hP' : ¬P) : False := by
   -- ヒント: 否定命題も`apply`することができる。
-  sorry
+  apply (hP' hP)
+
+example (hP : P) (hP' : ¬P) : False :=
+  hP' hP
+
 
 example : (P → Q) → ¬Q → ¬P := by
-  sorry
+  intro hPtoQ
+  intro hQtoFalse
+  intro hP
+  apply (hQtoFalse (hPtoQ hP))
+
+example : (P → Q) → ¬Q → ¬P :=
+  fun fpq ↦ fun fqb ↦ fun p ↦ fqb (fpq p)
+
+-- 下から →I で取ったものに名前を付けている感じか
+-- 複数行で書くときは apply は →E で、適用後と関数を使って引数だけにする感じ
+-- 関数の方も上に続く場合は必ず λ 項っぽく書くんかな
+-- そうでないときは複数行で書けば括弧をなくせるのか
+
 
 example : ¬¬¬P → ¬P := by
-  sorry
+  intro hNNNP
+  intro hP
+  apply hNNNP
+  intro hPtoFalse
+  apply (hPtoFalse hP)
+
+-- 最初はいちいち λ 項で考えないとわからなかったが慣れてきた
+-- 導出図をイメージしながらやる
 
 /- # 偽
 偽命題`False`からは任意の命題が証明できる。この事実には`False.elim`という名前がついている。
@@ -75,9 +107,12 @@ example : ¬¬¬P → ¬P := by
 
 example : False → P := by
   apply False.elim
+-- その型を持つ項として言語に用意されている感じか
 
 example (h : ¬P) : P → Q := by
-  sorry
+  intro hP
+  apply False.elim
+  apply (h hP)
 
 /- # かつ
 「PかつQ」は`P ∧ Q`と書かれる。`P ∧ Q`を示したい場合、`constructor`を用いれば右画面に表示される
@@ -89,28 +124,46 @@ example (hP : P) (hQ : Q) : P ∧ Q := by
   -- それぞれのゴールに的を絞ることができる。
   constructor
   case left =>
-    sorry
+    apply hP
   case right =>
-    sorry
+    apply hQ
+
+example (hP : P) (hQ : Q) : P ∧ Q :=
+  ⟨hP, hQ⟩
 
 example (hP : P) (hQ : Q) : P ∧ Q := by
   -- 別の書き方: `·`を用いた箇条書きでも分岐したでもそれぞれのゴールに的を絞ることができる。
   constructor
-  · sorry
-  · sorry
+  · apply hP
+  · apply hQ
 
 /- # かつ
 仮定`h : P ∧ Q`を持っているとき、`h.left`で`P`の証明を、`h.right`で`Q`の証明を得ることができる。
 -/
 
 example : P ∧ Q → P := by
-  sorry
+  intro h
+  apply h.left
+
+example : P ∧ Q → P :=
+  fun h ↦ h.left
 
 example : P ∧ Q → Q := by
-  sorry
+  intro h
+  apply h.right
+
+example : P ∧ Q → Q :=
+  fun h ↦ h.right
 
 example : P ∧ Q → Q ∧ P := by
-  sorry
+  intro h
+  constructor
+  · apply h.right
+  · apply h.left
+
+example : P ∧ Q → Q ∧ P :=
+  fun h ↦ ⟨h.right, h.left⟩
+
 
 /- # または
 「PまたはQ」は`P ∨ Q`と書かれる。仮定`h : P ∨ Q`を持っているとき、`cases h`によって場合分けの

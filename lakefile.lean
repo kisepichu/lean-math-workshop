@@ -10,9 +10,9 @@ package «lean-math-workshop» where
   -- add any package configuration options here
   leanOptions := moreServerArgs
 
-require "Seasawher" / "mk-exercise" @ git "main"
+require "Seasawher" / "mk-exercise" @ git "v4.26.0-rc2"
 
-require "leanprover-community" / "mathlib" @ git "master"
+require "leanprover-community" / "mathlib" @ git "v4.26.0-rc2"
 
 @[default_target]
 lean_lib «Solution» where

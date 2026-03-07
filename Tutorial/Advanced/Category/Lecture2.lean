@@ -1,5 +1,5 @@
 import Solution.Advanced.Category.Lecture1
-import Mathlib.RingTheory.TensorProduct.Basic
+import Mathlib.RingTheory.TensorProduct.Maps
 
 namespace Tutorial
 
@@ -225,7 +225,7 @@ variable {R : CommRingCat}
 open scoped TensorProduct
 
 /-- テンソル積を頂点に持つ余錐 -/
-@[simps]
+@[simps! vertex_base toVertex]
 def tensorCocone (F : Functor Coproduct.Shape (CommAlgCat R)) : Cocone F where
   vertex := ⟨(F.obj .l) ⊗[R] (F.obj .r), inferInstance, inferInstance⟩
   toVertex := fun j ↦ match j with
@@ -245,19 +245,32 @@ example (F : Functor Coproduct.Shape (CommAlgCat R)) : Colimit (tensorCocone F) 
     hom := sorry
     comm := by
       rintro (_ | _)
-      -- ヒント: `simp`を試してみよう
-      · sorry
-      · sorry
+      · dsimp only [Hom_def, tensorCocone_toVertex, comp_def, tensorCocone_vertex_base]
+        -- ヒント: `apply?`を試してみよう
+        sorry
+      · dsimp only [Hom_def, tensorCocone_toVertex, comp_def, tensorCocone_vertex_base]
+        sorry
   }
   uniq := by
     intro t f
     apply CoconeHom.ext
-    have hₗ : ∀ a : F.obj .l, f.hom (a ⊗ₜ[R.base] 1) = t.toVertex .l a := by
+    have hₗ : ∀ a : F.obj .l, f.hom (a ⊗ₜ[R] 1) = t.toVertex .l a := by
       -- ヒント: `AlgHom.congr_fun`を使う
       sorry
-    have hᵣ : ∀ b : F.obj .r, f.hom (1 ⊗ₜ[R.base] b) = t.toVertex .r b := by
+    have hᵣ : ∀ b : (F.obj .r), f.hom (1 ⊗ₜ[R] b) = t.toVertex .r b := by
       sorry
-    -- ヒント: `Algebra.TensorProduct.ext'`を使う（`ext`ではなくて`ext'`）
+    apply Algebra.TensorProduct.ext'
+    intro a b
+    change f.hom (a ⊗ₜ[R] b) = _
+    have hab : f.hom (a ⊗ₜ[R] b) = f.hom (a ⊗ₜ[R.base] 1) * f.hom (1 ⊗ₜ[R.base] b) := by
+      calc f.hom (a ⊗ₜ[R] b) = f.hom ((a * 1) ⊗ₜ[R] (1 * b)) := by sorry
+      _ = f.hom (a ⊗ₜ[R.base] 1 * 1 ⊗ₜ[R.base] b) := by
+        apply congrArg
+        show (a * 1) ⊗ₜ[R] (1 * b) = a ⊗ₜ[R] 1 * 1 ⊗ₜ[R] b
+        -- ヒント: `apply?`もしくは`rw?`を試してみよう
+        sorry
+      _ = f.hom (a ⊗ₜ[R] 1) * f.hom (1 ⊗ₜ[R] b) := by
+        apply map_mul
     sorry
 
 end TensorProduct

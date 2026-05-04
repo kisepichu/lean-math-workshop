@@ -52,15 +52,29 @@ example (h : P → Q) (hP : P) : Q := by
 example (h : P → Q) (hP : P) : Q :=
   h hP
 
-example (h : P → Q) (h' : Q → R) : P → R := by
-  -- ヒント: `intro hP`と入力すれば仮定`hP : P`が得られる。
+example (hPtoQ : P → Q) (hQtoR : Q → R) : P → R := by
+  -- 導出図の一番下 P → R からだんだん上に作っていく
+  intro hP -- →I を使って解消される仮定 P を取り出し R をゴールにする
+  apply hQtoR -- →E を使って左上に Q→R の証明を置き右上の Q をゴールにする
+  apply hPtoQ -- →E を使って左上に P→Q の証明を置き右上の P をゴールにする
+  apply hP -- 完了 (→E? を使って左上に (無→)P の証明を置くとゴールは無になる)
+
+-- 項 λa:A.b : 命題 A→B を、 A の証明を受け取って B の証明を返すもの考えられる。または、
+
+example (hPtoQ : P → Q) (hQtoR : Q → R) : P → R := by
   intro hP
-  apply (h' (h hP))
+  apply hQtoR
+  apply (hPtoQ hP) -- P
 
--- apply 複数行で書くとき、ゴールを変形するのわかりにくいな
+-- λa:A.b : 型   A→B を、 A を受け取って B を返す関数として考えられる。
 
-example (h : P → Q) (h' : Q → R) : P → R :=
-  fun hP ↦ h' (h hP)
+example (hPtoQ : P → Q) (hQtoR : Q → R) : P → R := by
+  apply fun hP ↦ hQtoR (hPtoQ hP)
+
+-- by apply は消せる
+
+example (f : P → Q) (g : Q → R) : P → R :=
+  fun x ↦ g (f x)
 
 -- TIPS: 入力した`intro`や`apply`の上にカーソルを乗せるとtacticの説明が表示される。
 

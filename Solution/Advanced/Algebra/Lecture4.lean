@@ -47,9 +47,9 @@ def leftRel {G} [Group G] (H : Subgroup G) : Setoid G where
       -- ヒント: `H.mul_mem`が使えるかも。
       -- sorry
       intro a b c h₁ h₂
-      calc _
-      _ = (a⁻¹ * b) * (b⁻¹ * c) := by simp [mul_assoc]
-      _ ∈ H := H.mul_mem h₁ h₂
+      have : a⁻¹ * c = (a⁻¹ * b) * (b⁻¹ * c) := by simp [mul_assoc]
+      rw [this]
+      apply H.mul_mem h₁ h₂
       -- sorry
   }
 
@@ -119,10 +119,7 @@ instance : GroupAction G (G ⧸ H) where
   smul := fun a ↦ lift (fun x ↦ (a * x) ⋆ H) <| by
     -- sorry
     intro b c h
-    simp only [eq]
-    calc _ = b⁻¹ * (a⁻¹ * a) * c := by simp [mul_assoc]
-      _ = b⁻¹ * c := by simp
-      _ ∈ H := h
+    simp [mul_assoc, h]
     -- sorry
   one_smul' := by
     /- これは「任意の`G ⧸ H`の元について◯◯」という形をしている。
@@ -141,11 +138,7 @@ instance : GroupAction G (G ⧸ H) where
     -/
     -- sorry
     rintro a b ⟨c⟩
-    simp only [mk_eq, lift_mk, eq]
-    calc _ =
-      c⁻¹ * (b⁻¹ * (a⁻¹ * a) * b) * c := by simp [mul_assoc]
-      _ = 1 := by simp
-      _ ∈ H := H.one_mem
+    simp [mul_assoc]
     -- sorry
 
 -- `G ⧸ H`上での`G`作用の定義の確認

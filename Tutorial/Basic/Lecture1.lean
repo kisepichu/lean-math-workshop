@@ -57,16 +57,7 @@ example (hPtoQ : P → Q) (hQtoR : Q → R) : P → R := by
   intro hP -- →I を使って解消される仮定 P を取り出し R をゴールにする
   apply hQtoR -- →E を使って左上に Q→R の証明を置き右上の Q をゴールにする
   apply hPtoQ -- →E を使って左上に P→Q の証明を置き右上の P をゴールにする
-  apply hP -- 完了 (→E? を使って左上に (無→)P の証明を置くとゴールは無になる)
-
--- 項 λa:A.b : 命題 A→B を、 A の証明を受け取って B の証明を返すもの考えられる。または、
-
-example (hPtoQ : P → Q) (hQtoR : Q → R) : P → R := by
-  intro hP
-  apply hQtoR
-  apply (hPtoQ hP) -- P
-
--- λa:A.b : 型   A→B を、 A を受け取って B を返す関数として考えられる。
+  apply hP -- 完了 (→E? を使って左上に (無)→P の証明を置くとゴールは無になる?)
 
 example (hPtoQ : P → Q) (hQtoR : Q → R) : P → R := by
   apply fun hP ↦ hQtoR (hPtoQ hP)
@@ -74,7 +65,7 @@ example (hPtoQ : P → Q) (hQtoR : Q → R) : P → R := by
 -- by apply は消せる
 
 example (f : P → Q) (g : Q → R) : P → R :=
-  fun x ↦ g (f x)
+  fun x: P ↦ g (f x)
 
 -- TIPS: 入力した`intro`や`apply`の上にカーソルを乗せるとtacticの説明が表示される。
 
@@ -84,36 +75,45 @@ example (f : P → Q) (g : Q → R) : P → R :=
 
 example (hP : P) (hP' : ¬P) : False := by
   -- ヒント: 否定命題も`apply`することができる。
-  apply (hP' hP)
+  apply hP'
+  apply hP
 
 example (hP : P) (hP' : ¬P) : False :=
   hP' hP
 
 
 example : (P → Q) → ¬Q → ¬P := by
-  intro hPtoQ
-  intro hQtoFalse
-  intro hP
-  apply (hQtoFalse (hPtoQ hP))
+  /- sorry -/
+  intro hPtoQ -- 仮定取り出し ⊢  (Q->False)->P->False
+  intro hQtoFalse -- 仮定取り出し ⊢ P->False
+  intro hP -- 仮定取り出し ⊢ False
+  apply hQtoFalse -- 2 番目が使えそう 導出図で言うと左上に置き右上をゴールに ⊢ Q
+  apply hPtoQ -- 同様 ⊢ P
+  apply hP -- 完了
+
 
 example : (P → Q) → ¬Q → ¬P :=
   fun fpq ↦ fun fqb ↦ fun p ↦ fqb (fpq p)
 
--- 下から →I で取ったものに名前を付けている感じか
+-- 下から →I で取ったものに名前を付けている感じか はい
 -- 複数行で書くときは apply は →E で、適用後と関数を使って引数だけにする感じ
 -- 関数の方も上に続く場合は必ず λ 項っぽく書くんかな
 -- そうでないときは複数行で書けば括弧をなくせるのか
 
 
 example : ¬¬¬P → ¬P := by
-  intro hNNNP
-  intro hP
-  apply hNNNP
-  intro hPtoFalse
-  apply (hPtoFalse hP)
+  intro p2b_2b_2b
+  intro p
+  apply p2b_2b_2b
+  intro p2b
+  apply (p2b p)
+
+
 
 -- 最初はいちいち λ 項で考えないとわからなかったが慣れてきた
 -- 導出図をイメージしながらやる
+
+-- いや info view を見ながらできるようになってきた
 
 /- # 偽
 偽命題`False`からは任意の命題が証明できる。この事実には`False.elim`という名前がついている。
@@ -122,11 +122,38 @@ example : ¬¬¬P → ¬P := by
 example : False → P := by
   apply False.elim
 -- その型を持つ項として言語に用意されている感じか
+#check False.elim
+-- : forall C. False -> C
 
 example (h : ¬P) : P → Q := by
   intro hP
+  apply False.elim -- ゴールを False にするもの
+  apply h
+  apply hP
+
+-- 関数とみると先に false 作りたくなるー
+example (h : ¬ P) : P → Q := by
+  intro hP
+  have false := h hP
   apply False.elim
   apply (h hP)
+
+example (h: ¬ P): P → Q :=
+  fun p ↦ 
+    let c := h p;
+    let q : Q := False.elim c; 
+    q
+
+-- ok
+-- だが導出図をイメージすると一番上が良さそう infoview 見ながら書いて練習
+
+example (h:¬ P):P→ Q:=by
+  intro hP
+  apply False.elim
+  apply h
+  apply hP
+
+
 
 /- # かつ
 「PかつQ」は`P ∧ Q`と書かれる。`P ∧ Q`を示したい場合、`constructor`を用いれば右画面に表示される

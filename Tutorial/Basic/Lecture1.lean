@@ -183,27 +183,31 @@ example (hP : P) (hQ : Q) : P ∧ Q := by
 -/
 
 example : P ∧ Q → P := by
-  intro h
-  apply h.left
+  intro pq
+  apply pq.left
 
 example : P ∧ Q → P :=
   fun h ↦ h.left
 
+
 example : P ∧ Q → Q := by
-  intro h
-  apply h.right
+  intro pq
+  apply pq.right
 
 example : P ∧ Q → Q :=
   fun h ↦ h.right
 
 example : P ∧ Q → Q ∧ P := by
-  intro h
+  intro pq
   constructor
-  · apply h.right
-  · apply h.left
-
+  case left => apply pq.right
+  case right => apply pq.left
+  
 example : P ∧ Q → Q ∧ P :=
-  fun h ↦ ⟨h.right, h.left⟩
+  fun pq ↦ 
+    let p := pq.left
+    let q := pq.right
+    ⟨q, p⟩
 
 
 /- # または
@@ -218,25 +222,31 @@ example : P ∨ Q → (P → R) → (Q → R) → R := by
   cases h
   -- `case inl hP`で左側の命題`P`の証明に`hP`という名前を付けている。
   case inl hP =>
-    sorry
+    apply hPR hP
   case inr hQ =>
-    sorry
+    apply hQR hQ
 
 example : P ∨ Q → (P → R) → (Q → R) → R := by
   intro h hPR hQR
   -- `rcases`という`cases`の別バージョンがある。ひとつの違いとして、こちらは`case`を使わなくても
   -- 分岐した仮定に名前を付けられる。箇条書きを使いたい人はこちらを使おう。
   rcases h with hP | hQ
-  · sorry
-  · sorry
+  · apply hPR hP
+  · apply hQR hQ
 
 example (h : P ∨ Q) : (P → R) → (Q → P) → R := by
-  sorry
+  intro hPR hQP
+  rcases h with hP | hQ
+  · apply hPR hP
+  · apply hPR (hQP hQ)
 
 example : ¬¬P → P := by
   -- `have` tacticで仮定を追加することができる。以降のファイルではヒントとしても用いる。
   have h : P ∨ ¬P := by apply Classical.em
-  sorry
+  intro p2b_2b
+  rcases h with p | p2b
+  · apply p
+  · apply False.elim (p2b_2b p2b)
 
 /-
 最初のチュートリアルファイル`Lecture1.lean`は以上です。

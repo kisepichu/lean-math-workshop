@@ -16,22 +16,33 @@ mathlibは現在も活発に発展しているライブラリであるが、既�
 example [Group G] [Group H] (f : G →* H) (a b : G) :
     f (a * b) = f a * f b := by
   -- ヒント: `apply?`を使う
-  sorry
+  exact MonoidHom.map_mul f a b
+  -- apply?
+  --
+
+#check MonoidHom.map_mul
 
 -- TIPS: 関数の適用は`f (x)`ではなく`f x`と書くことが多い
 
 example [Group G] [Group H] (f : G →* H) (a : G) (n : ℤ) :
     f (a ^ n) = (f a) ^ n := by
-  sorry
+  apply?
+
+#check MonoidHom.map_zpow
+
+-- map_xxx は xxx を保つという定理の証明がち
 
 example [Group G] (x y : G) :
     (x * y)⁻¹ = y⁻¹ * x⁻¹ := by
-  sorry
+  apply?
+
+
 
 -- 環準同型の合成
 example [Ring R] [Ring S] [Ring T] (f : R →+* S) (g : S →+* T) :
     R →+* T := by
-  sorry
+  #check g.comp
+  apply?
 
 /- # simp
 mathlibの定理を使って式を簡略化するtactic
@@ -40,7 +51,7 @@ mathlibの定理を使って式を簡略化するtactic
 example [Ring R] [Ring S] (f : R →+* S) (a b c) :
     f (a + b * c) = f a + f b * f c := by
   -- ヒント: `simp`を使う
-  sorry
+  simp
 
 /- # ring, linarith, nlinarith
 - `ring`: 可換環の等式を証明するtactic
@@ -58,7 +69,8 @@ example (x : ℤ) (h : 1 < x) : 3 < (x + 1) ^ 2 := by
   nlinarith
 
 example (x y : ℤ) : (x + y) ^ 3 = x ^ 3 + 3 * x ^ 2 * y + 3 * x * y ^ 2 + y ^ 3 := by
-  sorry
+  ring
+
 
 /- # calc
 式変形での証明を直観的に書くための機能
@@ -75,3 +87,13 @@ example (a b c : ℤ) (h₁ : a ≤ b) (h₂ : b = c + 5) :
   -- 等式と不等式をつなげることもできる
   calc a ≤ b       := by apply h₁
        _ = c + 5   := by apply h₂
+
+
+
+example (a b c : ℤ) (h₁ : a ≤ b) (h₂ : b = c + 5) :
+    a ≤ c + 5 := by
+  calc a ≤ b := h₁
+  _ = c+5    := h₂
+
+-- formatter...
+

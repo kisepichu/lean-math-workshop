@@ -147,7 +147,9 @@ example (h: ¬ P): P → Q :=
 -- ok
 -- だが導出図をイメージすると一番上が良さそう infoview 見ながら書いて練習
 
-example (h:¬ P):P→ Q:=by
+-- formatter がなくてつらい
+
+example (h: ¬P): P→Q := by
   intro hP
   apply False.elim
   apply h

@@ -23,7 +23,10 @@ example : Injective f ↔ Function.Injective f := Iff.rfl
 example : Injective (fun x : ℕ ↦ x + 1) := by
   -- ヒント: `rw [Injective]`をすると単射の定義に戻れる
   -- 積極的に`simp`や`apply?`等のチートコマンドを使おう！
-  sorry
+  rw [Injective]
+  intro x1 x2
+  intro h
+  linarith
 
 /-
 2つの単射の合成は単射。
@@ -39,8 +42,11 @@ theorem Injective.comp {f : X → Y} {g : Y → Z} (hfinj : Injective f) (hginj 
   -- `hgf : (g ∘ f) x₁ = (g ∘ f) x₂`に対して、`g`が単射だということを使って`f x₁ = f x₂`という事実を導いて使いたい。
   -- 次のように`have`を使おう。
   have hf := hginj hgf
+  -- hginj: g x = g y の証明を受け取って x = y の証明を返す。
+  -- hgf = g (f x) = g (f y) を入れる
+
   -- すると `hf: f x₁ = f x₂`が使える。下の補足も参照。
-  sorry
+  exact hfinj hf
 
 /-
 *補足*
@@ -63,7 +69,13 @@ example {f : X → Y} {g : Y → Z} (hfinj : Injective f) (hginj : Injective g) 
   rw [Injective]
   intro x₁ x₂ hgf
   apply hfinj -- なぜ`apply`でこう書き換わるか考えよう
-  sorry
+  -- x=y の左上に hfinj 置いてる
+  apply (hginj hgf)
+
+-- 前者の証明は g の方から g(fx)=g(fy) を仮定し ginj finj で戻す
+-- 後者は f の方から見て x=y の結論出すためには fx=fy があれば良くて、それを出すためには g(fx)=g(fy) があれば良い
+-- 後者の方が自然
+-- 自然演繹下から作ってる
 
 -- 合成して単射なら先の写像は単射
 theorem Injective.of_comp {f : X → Y} {g : Y → Z} (hgfinj : Injective (g ∘ f)) : Injective f := by
@@ -73,13 +85,14 @@ theorem Injective.of_comp {f : X → Y} {g : Y → Z} (hgfinj : Injective (g ∘
   -- 以下のように、`have name : 示したいこと := by`と書ける。
   -- その後のインデントに注意。
   have h : g (f x₁) = g (f x₂) := by
-    sorry
-  sorry
+    #check congrArg
+    apply?
+  exact hgfinj h
 
 -- 強いチートコマンドを使った別解
 example {f : X → Y} {g : Y → Z} (hgfinj : Injective (g ∘ f)) : Injective f := by
   rw [Injective]
-  aesop -- 自動でルーチーンな証明をやってくれる強いやつ。
+  aesop? -- 自動でルーチーンな証明をやってくれる強いやつ。
   -- `aesop?`と`?`をつけると、実際に使われた証明が見える。
 
 /-
@@ -110,7 +123,10 @@ example : Surjective f ↔ Function.Surjective f := Iff.rfl
 example : Surjective (fun x : ℤ ↦ x + 1) := by
   -- `apply?`等のチートコマンドを使ってもいいし、
   -- Lecture 3で学んだ`exists`を使ってもいい
-  sorry
+  rw [Surjective]
+  intro y
+  exists y-1
+  linarith
 
 -- 以下`f`は`X`から`Y`への写像、`g`は`Y`から`Z`の写像とする。
 variable {f : X → Y} {g : Y → Z}
@@ -122,8 +138,13 @@ theorem Surjective.comp (hfsurj : Surjective f) (hgsurj : Surjective g) : Surjec
   -- `g`の全射性から、`z : Z`に飛ぶ`y`が取りたい。
   -- これはLecture3で見たように、次で取れる。
   -- 下の補足も参照。
+  -- 補足いいね
   have ⟨y, hy⟩ := hgsurj z
-  sorry
+  have ⟨x, hx⟩ := hfsurj y
+  exists x
+  calc (g ∘ f) x = g (f x) := rfl
+    _ = g y := by rw [hx]
+    _ = z := by rw [hy]
 
 /-
 *補足*
@@ -135,7 +156,10 @@ theorem Surjective.comp (hfsurj : Surjective f) (hgsurj : Surjective g) : Surjec
 
 -- 合成して全射なら後ろの写像は全射
 theorem Surjective.of_comp (h : Surjective (g ∘ f)) : Surjective g := by
-  sorry
+  rw [Surjective]
+  intro z
+  have ⟨x, hx⟩ := h z
+  exists f x
 
 end Tutorial
 
